@@ -1,0 +1,66 @@
+{
+  "name": "nugget",
+  "version": "1.0.0",
+  "description": "Diff yarn lockfile changes",
+  "author": "Chris Lee <chl@umich.edu>",
+  "license": "ISC",
+  "repository": "https://github.com/chris4459",
+  "homepage": "https://github.com/chris4459",
+  "bugs": "https://github.com/chris4459",
+  "keywords": [
+    "probot",
+    "github",
+    "probot-app"
+  ],
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "dev": "nodemon --exec \"yarn start\"",
+    "start": "probot run ./lib/index.js",
+    "lint": "tslint --project tsconfig.json --format stylish",
+    "test": "jest",
+    "test:watch": "jest --watch --notify --notifyMode=change --coverage"
+  },
+  "dependencies": {
+    "@types/handlebars": "^4.0.40",
+    "@types/lodash": "^4.14.120",
+    "@types/mkdirp": "^0.5.2",
+    "@types/nock": "^9.3.0",
+    "@types/request-promise-native": "^1.0.15",
+    "@yarnpkg/lockfile": "^1.1.0",
+    "handlebars": "^4.0.12",
+    "lodash": "^4.17.11",
+    "mkdirp": "^0.5.1",
+    "nock": "^10.0.0",
+    "probot": "^7.2.0",
+    "request-promise-native": "^1.0.5"
+  },
+  "devDependencies": {
+    "@types/jest": "^23.1.5",
+    "@types/node": "^10.5.2",
+    "eslint-plugin-typescript": "^0.12.0",
+    "jest": "^23.4.0",
+    "nodemon": "^1.17.2",
+    "prettier": "1.15.3",
+    "smee-client": "^1.0.2",
+    "ts-jest": "^23.0.0",
+    "tslint": "^5.12.1",
+    "tslint-config-prettier": "^1.17.0",
+    "typescript": "^2.9.2",
+    "typescript-eslint-parser": "^18.0.0"
+  },
+  "engines": {
+    "node": ">= 8.3.0"
+  },
+  "standard": {
+    "parser": "typescript-eslint-parser",
+    "env": [
+      "jest"
+    ],
+    "plugins": [
+      "typescript"
+    ]
+  },
+  "jest": {
+    "testEnvironment": "node"
+  }
+}
