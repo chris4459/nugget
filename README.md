@@ -33,6 +33,9 @@ After detecting and parsing a `yarn.lock` diff in your pull request, Nugget cate
 - _Packages Removed_
   - What package has been removed?
 
+Here's an example comment that Nugget will post
+![Nugget Example Comment](/images/nugget-comment-example.png)
+
 ## Contributing
 
 If you have suggestions for how nugget could be improved, or want to report a bug, open an issue! We'd love all and any contributions.
