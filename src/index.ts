@@ -3,9 +3,10 @@ import {Application, Context} from 'probot';
 import {
   createComment,
   createCommentBody,
+  createTooManyFilesCommentBody,
   getCommentFromNugget,
 } from './comment';
-import {getLockfileChange, getSerializedLockFile} from './lockfile';
+import {getLockfileChange, getSerializedLockFile, ILockfileData, LockfileStatus} from './lockfile';
 
 export = (app: Application) => {
   app.on(
@@ -15,8 +16,8 @@ export = (app: Application) => {
       const contextId = `[${owner}/${repo}/${issueNumber}]`;
 
       // Check if there is a lockfile change
-      const lockfileData = await getLockfileChange(context);
-      if (!lockfileData) {
+      const {status, data: lockfileData}: ILockfileData = await getLockfileChange(context);
+      if (status === LockfileStatus.NotFound) {
         app.log(contextId, 'No yarn.lock change found');
 
         const nuggetComment = await getCommentFromNugget(context, app);
@@ -30,6 +31,25 @@ export = (app: Application) => {
           });
         }
 
+        return;
+      }
+
+      if (status === LockfileStatus.TooManyFiles) {
+        app.log(contextId, 'Too many files in pull request');
+
+        const nuggetComment = await getCommentFromNugget(context, app);
+
+        if (!isUndefined(nuggetComment)) {
+          app.log(contextId, 'Deleting existing nugget comment');
+          await context.github.issues.deleteComment({
+            comment_id: nuggetComment.id,
+            owner,
+            repo,
+          });
+        }
+
+        const tooManyFilesCommentBody = createTooManyFilesCommentBody();
+        await createComment(context, app, tooManyFilesCommentBody);
         return;
       }
 
