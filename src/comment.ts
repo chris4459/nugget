@@ -181,3 +181,9 @@ that got resolved to an existing version using \
 
   return commentBody;
 };
+
+export const createTooManyFilesCommentBody = (): string => {
+  return ':cat2: Nugget noticed that there are more than 3000 file changes.\
+  The [github api](https://developer.github.com/v3/pulls/#list-pull-requests-files) only supports listing a maximum\
+  of 3000 files. Thus there may have been a `yarn.lock` file change that Nugget couldn\'t detect.'
+}

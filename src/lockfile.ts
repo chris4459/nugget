@@ -8,10 +8,21 @@ import {Context} from 'probot';
 import {default as rp} from 'request-promise-native';
 
 const FILES_PER_PAGE = 50;
-const MAX_NUM_PAGES = 10;
+const MAX_NUM_PAGES = 60;
+
+export enum LockfileStatus {
+  Found,
+  NotFound,
+  TooManyFiles,
+}
 
 export interface ISerializedPackage {
   versions: string[];
+}
+
+export interface ILockfileData {
+  status: LockfileStatus;
+  data?: any;
 }
 
 const getPackageName = (pkg: string): string => {
@@ -55,7 +66,7 @@ const serializeLockfile = (
   return new Map(Array.from(map.entries()).sort());
 };
 
-export const getLockfileChange = async (context: Context) => {
+export const getLockfileChange = async (context: Context): Promise<ILockfileData> => {
   let page = 1;
 
   const {number: issueNumber, owner, repo} = context.issue();
@@ -69,7 +80,9 @@ export const getLockfileChange = async (context: Context) => {
     });
 
     if (isEmpty(files.data)) {
-      return;
+      return {
+        status: LockfileStatus.NotFound,
+      };
     }
 
     const yarnLf = find(files.data, file => {
@@ -77,13 +90,31 @@ export const getLockfileChange = async (context: Context) => {
     });
 
     if (yarnLf) {
-      return yarnLf;
+      return {
+        data: yarnLf,
+        status: LockfileStatus.Found,
+      }
     }
 
     page++;
   }
 
-  return;
+  /**
+   *  NOTE:
+   * Only includes max of 3000 files https://developer.github.com/v3/pulls/#list-pull-requests-files
+   * Thus if page is at max, and still haven't found a yarn lockfile, may be because PR has too many files.
+   */
+
+  if (page > MAX_NUM_PAGES) {
+    // return something
+    return {
+      status: LockfileStatus.TooManyFiles,
+    };
+  }
+
+  return {
+    status: LockfileStatus.NotFound,
+  };
 };
 
 /**
