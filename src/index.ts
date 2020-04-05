@@ -9,6 +9,11 @@ import {
 import {getLockfileChange, getSerializedLockFile, ILockfileData, LockfileStatus} from './lockfile';
 
 export = (app: Application) => {
+
+  app.route().get('/healthcheck', (req: any, res: any) => {
+    res.send(`OK`);
+  });
+
   app.on(
     ['pull_request.opened', 'pull_request.synchronize'],
     async (context: Context) => {
