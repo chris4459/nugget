@@ -8,15 +8,15 @@ export const getCommentFromNugget = async (
   context: Context,
   app: Application
 ) => {
-  const {number: issueNumber, owner, repo} = context.issue();
+  const {issue_number: issueNumber, owner, repo} = context.issue();
 
   const github = await app.auth();
   const githubApp = await github.apps.getAuthenticated({});
   const githubAppName = githubApp.data.name;
 
   // Get all comments for issue
-  const comments = await context.github.issues.listComments({
-    number: issueNumber,
+  const comments = await context.octokit.issues.listComments({
+    issue_number: issueNumber,
     owner,
     repo,
   });
@@ -39,22 +39,22 @@ export const createComment = async (
   app: Application,
   body: string
 ) => {
-  const {number: issueNumber, owner, repo} = context.issue();
+  const {issue_number: issueNumber, owner, repo} = context.issue();
 
   const nuggetComment = await getCommentFromNugget(context, app);
 
   // Create/update comment
   if (!isUndefined(nuggetComment)) {
-    await context.github.issues.updateComment({
+    await context.octokit.issues.updateComment({
       body,
       comment_id: nuggetComment.id,
       owner,
       repo,
     });
   } else {
-    await context.github.issues.createComment({
+    await context.octokit.issues.createComment({
       body,
-      number: issueNumber,
+      issue_number: issueNumber,
       owner,
       repo,
     });

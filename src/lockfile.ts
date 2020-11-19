@@ -69,13 +69,13 @@ const serializeLockfile = (
 export const getLockfileChange = async (context: Context): Promise<ILockfileData> => {
   let page = 1;
 
-  const {number: issueNumber, owner, repo} = context.issue();
+  const {issue_number: issueNumber, owner, repo} = context.issue();
   while (page <= MAX_NUM_PAGES) {
-    const files = await context.github.pullRequests.listFiles({
-      number: issueNumber,
+    const files = await context.octokit.pulls.listFiles({
       owner,
       page,
       per_page: FILES_PER_PAGE,
+      pull_number: issueNumber,
       repo,
     });
 
