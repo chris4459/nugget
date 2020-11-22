@@ -4,8 +4,7 @@
 
 import * as lockfile from '@yarnpkg/lockfile';
 import {find, forEach, isEmpty, isNull} from 'lodash';
-import {Context} from 'probot';
-import {default as rp} from 'request-promise-native';
+import {Context, ProbotOctokit} from 'probot';
 
 const FILES_PER_PAGE = 50;
 const MAX_NUM_PAGES = 60;
@@ -118,10 +117,19 @@ export const getLockfileChange = async (context: Context): Promise<ILockfileData
 };
 
 /**
- * Get a serialized lockfile from a given uri to a lock.file
+ * Get a serialized lockfile
  * @param uri
  */
-export const getSerializedLockFile = async (uri: string) => {
-  const parsedLockfile = lockfile.parse(await rp({json: true, uri}));
+export const getSerializedLockFile = async (context: Context, github: InstanceType<typeof ProbotOctokit>, ref: string) => {
+  const {owner, repo} = context.issue();
+
+  const rawLockfile = await github.repos.getContent({
+    owner,
+    path: 'yarn.lock',
+    ref,
+    repo,
+  });
+  const rawLockfileContent = Buffer.from(rawLockfile.data.content, 'base64').toString();
+  const parsedLockfile = lockfile.parse(rawLockfileContent);
   return serializeLockfile(parsedLockfile.object);
 };

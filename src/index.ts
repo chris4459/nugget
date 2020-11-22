@@ -1,5 +1,5 @@
 import {Router} from 'express';
-import {get, isUndefined} from 'lodash';
+import {isUndefined} from 'lodash';
 import {Application, Context} from 'probot';
 import {
   createComment,
@@ -23,8 +23,11 @@ export = ({app, getRouter}: {app: Application, getRouter: () => Router}) => {
       const {issue_number: issueNumber, owner, repo} = context.issue();
       const contextId = `[${owner}/${repo}/${issueNumber}]`;
 
+      // Get authenticated github app
+      const github = await app.auth(context.payload.installation.id);
+
       // Check if there is a lockfile change
-      const {status, data: lockfileData}: ILockfileData = await getLockfileChange(context);
+      const {status}: ILockfileData = await getLockfileChange(context);
       if (status === LockfileStatus.NotFound) {
         app.log(`${contextId} No yarn.lock change found`);
 
@@ -64,19 +67,12 @@ export = ({app, getRouter}: {app: Application, getRouter: () => Router}) => {
       app.log(`${contextId} Detected yarn.lock change`);
 
       // Serialize changed lockfile
-      const newLf = await getSerializedLockFile(lockfileData.raw_url);
+      const newLf = await getSerializedLockFile(context, github, context.payload.pull_request?.head?.ref);
 
       // Serialize base ref lockfile
       let baseLf;
       try {
-        const baseContent = await context.octokit.repos.getContent({
-          owner,
-          path: 'yarn.lock',
-          ref: get(context.payload, ['pull_request', 'base', 'ref'], 'master'),
-          repo,
-        });
-
-        baseLf = await getSerializedLockFile(baseContent.data.download_url);
+        baseLf = await getSerializedLockFile(context, github, context.payload.pull_request?.base?.ref || '');
       } catch (error) {
         app.log(`${contextId} No yarn.lock found in base ref`);
         baseLf = new Map();
