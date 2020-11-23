@@ -56,7 +56,14 @@ const serializeLockfile = (
     const serializedData = map.get(pkgName) || {versions: []};
 
     if (serializedData.versions.indexOf(data.version) < 0) {
-      serializedData.versions.push(data.version);
+      const indexToInsert = serializedData.versions.findIndex(version => {
+        return data.version < version;
+      });
+      if (indexToInsert < 0) {
+        serializedData.versions.push(data.version);
+      } else {
+        serializedData.versions.splice(indexToInsert, 0, data.version);
+      }
       map.set(pkgName, serializedData);
     }
   });
