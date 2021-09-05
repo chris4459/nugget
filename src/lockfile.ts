@@ -5,6 +5,7 @@
 import * as lockfile from '@yarnpkg/lockfile';
 import {find, forEach, isEmpty, isNull} from 'lodash';
 import {Context, ProbotOctokit} from 'probot';
+import {parse as parseYaml} from 'yaml';
 
 const FILES_PER_PAGE = 50;
 const MAX_NUM_PAGES = 60;
@@ -25,7 +26,7 @@ export interface ILockfileData {
 }
 
 const getPackageName = (pkg: string): string => {
-  const regex = /.*(?=@)/g;
+  const regex = /^(.+?)(?=@)/g;
   const pkgName = pkg.match(regex);
   if (isNull(pkgName)) {
     // If null for some reason, just return back the original pkg name
@@ -137,6 +138,15 @@ export const getSerializedLockFile = async (context: Context, github: InstanceTy
     repo,
   });
   const rawLockfileContent = Buffer.from(rawLockfile.data.content, 'base64').toString();
-  const parsedLockfile = lockfile.parse(rawLockfileContent);
-  return serializeLockfile(parsedLockfile.object);
+
+  // Berry (yarn 2+) uses pure yaml as it's lockfile.
+  // Check if file is yaml compatible
+  try {
+    // Leave out __metadata field
+    const {__metadata, ...parsedLockfile} = parseYaml(rawLockfileContent);
+    return serializeLockfile(parsedLockfile);
+  } catch (e) {
+    const parsedLockfile = lockfile.parse(rawLockfileContent);
+    return serializeLockfile(parsedLockfile.object);
+  }
 };
